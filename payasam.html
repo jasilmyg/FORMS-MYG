@@ -82,50 +82,15 @@
     /* ─── Hero banner ──────────────────────────── */
     .hero-banner {
       padding-top: 72px;
-      background: linear-gradient(180deg, #030e07 0%, #041a0c 100%);
-      text-align: center;
-      position: relative;
-      overflow: hidden;
+      background: #030e07;
+      display: block;
+      cursor: pointer;
     }
-    .hero-banner::before {
-      content: '';
-      position: absolute; inset: 0;
-      background:
-        radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0,107,60,0.18) 0%, transparent 70%),
-        radial-gradient(ellipse 60% 40% at 50% 100%, rgba(245,197,24,0.08) 0%, transparent 70%);
-      pointer-events: none;
-    }
-    .hero-content { position: relative; z-index: 2; padding: 48px 24px 36px; }
-    .hero-eyebrow {
-      display: inline-block;
-      font-size: 11px; font-weight: 700; letter-spacing: 3px;
-      text-transform: uppercase; color: var(--kerala-amber);
-      background: rgba(255,153,0,0.12);
-      border: 1px solid rgba(255,153,0,0.3);
-      padding: 6px 18px; border-radius: 999px;
-      margin-bottom: 20px;
-    }
-    .hero-title {
-      font-family: var(--font-ml);
-      font-size: clamp(28px, 6vw, 52px);
-      font-weight: 700;
-      background: linear-gradient(135deg, #f5c518 0%, #ffee70 40%, #f5a500 100%);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-      background-clip: text;
-      text-shadow: none;
-      line-height: 1.2;
-      margin-bottom: 12px;
-    }
-    .hero-subtitle {
-      font-family: var(--font-ml);
-      font-size: clamp(14px, 2.5vw, 18px);
-      color: var(--text-muted);
-      max-width: 520px; margin: 0 auto 24px;
-    }
-    .hero-divider {
-      width: 80px; height: 3px; margin: 0 auto;
-      background: linear-gradient(90deg, transparent, var(--kerala-gold), transparent);
-      border-radius: 99px;
+    .hero-banner img {
+      width: 100%;
+      height: auto;
+      display: block;
+      object-fit: cover;
     }
 
     /* ─── Page wrapper ─────────────────────────── */
@@ -400,14 +365,11 @@
   </nav>
 
   <!-- Hero -->
-  <header class="hero-banner">
-    <div class="hero-content">
-      <span class="hero-eyebrow">🏆 Competition Open</span>
-      <h1 class="hero-title">myG Payasolsavam</h1>
-      <p class="hero-subtitle">നിങ്ങളുടെ പായസ രഹസ്യം ലോകവുമായി പങ്കിടൂ. ഇപ്പോൾ രജിസ്റ്റർ ചെയ്യൂ!</p>
-      <div class="hero-divider"></div>
-    </div>
-  </header>
+  <a href="#form-card" class="hero-banner" aria-label="Register for myG Payasolsavam">
+    <img src="static/payasolsavam_banner.png"
+         alt="myG Payasolsavam 2026 – Competition Open. Register Now!"
+         width="1600" height="900" />
+  </a>
 
   <!-- Main Form -->
   <main class="page-wrap">
