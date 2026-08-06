@@ -377,7 +377,7 @@
       <!-- Progress Screen -->
       <div class="progress-screen hidden" id="progress-screen">
         <span class="progress-icon">⬆️</span>
-        <div class="progress-header">വീഡിയോ അപ്‌ലോഡ് ചെയ്യുന്നു…</div>
+        <div class="progress-header">Uploading your video…</div>
         <div class="progress-bar-wrap">
           <div class="progress-bar-fill" id="progress-bar-fill"></div>
         </div>
@@ -385,17 +385,14 @@
           <span id="progress-percent">0%</span>
           <span id="progress-size">0.0 MB / 0.0 MB</span>
         </div>
-        <p class="progress-warning">⚠️ ഈ പേജ് അടയ്ക്കരുത്. Please do not close this page.</p>
+        <p class="progress-warning">⚠️ Please do not close this page.</p>
       </div>
 
       <!-- Success Screen -->
       <div class="success-screen hidden" id="success-screen">
         <div class="success-icon">✓</div>
-        <h2 class="success-title">വിജയകരമായി സമർപ്പിച്ചു!</h2>
-        <p class="success-msg">
-          നിങ്ങളുടെ വിവരങ്ങൾ സുരക്ഷിതമായി സ്വീകരിച്ചു.<br>
-          Your entry has been successfully received!
-        </p>
+        <h2 class="success-title">Successfully Submitted!</h2>
+        <p class="success-msg">Your entry has been successfully received!</p>
         <a href="/payasam" class="back-btn" id="back-home-btn">← Back to Form</a>
       </div>
 
@@ -403,10 +400,10 @@
       <form id="payasam-form" novalidate>
         <h2 class="form-title">📝 Registration Form</h2>
 
-        <!-- പേര് (Name) -->
+        <!-- Name -->
         <div class="form-group" id="group-name">
           <label class="form-label" for="paya-name">
-            പേര് <span class="required">*</span>
+            Name <span class="required">*</span>
           </label>
           <div class="input-wrap">
             <span class="input-icon">
@@ -415,16 +412,16 @@
               </svg>
             </span>
             <input type="text" id="paya-name" name="paya_name" class="form-input"
-              placeholder="നിങ്ങളുടെ പേര് / Your full name"
+              placeholder="Your full name"
               autocomplete="name" />
           </div>
           <div class="error-msg hidden" id="err-name"></div>
         </div>
 
-        <!-- സ്ഥലം / ലൊക്കേഷൻ (Place) -->
+        <!-- Place / Location -->
         <div class="form-group" id="group-place">
           <label class="form-label" for="paya-place">
-            സ്ഥലം / ലൊക്കേഷൻ <span class="required">*</span>
+            Place / Location <span class="required">*</span>
           </label>
           <div class="input-wrap">
             <span class="input-icon">
@@ -433,15 +430,15 @@
               </svg>
             </span>
             <input type="text" id="paya-place" name="paya_place" class="form-input"
-              placeholder="നിങ്ങളുടെ സ്ഥലം / Your location" />
+              placeholder="Your location / city" />
           </div>
           <div class="error-msg hidden" id="err-place"></div>
         </div>
 
-        <!-- ഫോൺ നമ്പർ (Phone) -->
+        <!-- Phone Number -->
         <div class="form-group" id="group-phone">
           <label class="form-label" for="paya-phone">
-            ഫോൺ നമ്പർ <span class="required">*</span>
+            Phone Number <span class="required">*</span>
           </label>
           <div class="input-wrap">
             <span class="input-icon">
@@ -455,10 +452,10 @@
           <div class="error-msg hidden" id="err-phone"></div>
         </div>
 
-        <!-- ഇൻസ്റ്റാഗ്രാം ഐഡി (Instagram) -->
+        <!-- Instagram ID -->
         <div class="form-group" id="group-instagram">
           <label class="form-label" for="paya-instagram">
-            ഇൻസ്റ്റാഗ്രാം ഐഡി <span class="required">*</span>
+            Instagram ID <span class="required">*</span>
           </label>
           <div class="input-wrap">
             <span class="input-icon" style="font-size:13px; font-weight:700; color:rgba(255,255,255,0.4);">@</span>
@@ -468,10 +465,10 @@
           <div class="error-msg hidden" id="err-instagram"></div>
         </div>
 
-        <!-- തയ്യാറാക്കുന്ന പായസത്തിന്റെ പേര് (Payasam Name) -->
+        <!-- Name of the Payasam -->
         <div class="form-group" id="group-payasam">
           <label class="form-label" for="paya-payasam">
-            തയ്യാറാക്കുന്ന പായസത്തിന്റെ പേര് <span class="required">*</span>
+            Name of the Payasam <span class="required">*</span>
           </label>
           <div class="input-wrap">
             <span class="input-icon">🍮</span>
@@ -514,7 +511,7 @@
           <div class="consent-checkbox-wrap">
             <input type="checkbox" id="paya-consent" name="consent" class="consent-checkbox" />
             <label for="paya-consent" class="consent-checkbox-label">
-              ഞാൻ ഇതിനോട് സമ്മതിക്കുന്നു — I agree to the above terms and conditions.
+              I agree to the above terms and conditions.
             </label>
           </div>
           <div class="error-msg hidden" id="err-consent"></div>
@@ -597,29 +594,29 @@
     function validate() {
       let ok = true;
       const nameVal = $('paya-name').value.trim();
-      if (!nameVal) { setErr('err-name', 'പേര് നൽകൂ / Name is required.'); ok = false; }
+      if (!nameVal) { setErr('err-name', 'Name is required.'); ok = false; }
       else clearErr('err-name');
 
       const placeVal = $('paya-place').value.trim();
-      if (!placeVal) { setErr('err-place', 'സ്ഥലം നൽകൂ / Location is required.'); ok = false; }
+      if (!placeVal) { setErr('err-place', 'Location is required.'); ok = false; }
       else clearErr('err-place');
 
       const phoneVal = $('paya-phone').value.trim();
       if (!phoneVal || !/^\d{10}$/.test(phoneVal)) {
-        setErr('err-phone', '10 അക്ക ഫോൺ നമ്പർ നൽകൂ / Enter a valid 10-digit phone number.');
+        setErr('err-phone', 'Enter a valid 10-digit phone number.');
         ok = false;
       } else clearErr('err-phone');
 
       const instaVal = $('paya-instagram').value.trim();
-      if (!instaVal) { setErr('err-instagram', 'Instagram ID നൽകൂ / Instagram ID is required.'); ok = false; }
+      if (!instaVal) { setErr('err-instagram', 'Instagram ID is required.'); ok = false; }
       else clearErr('err-instagram');
 
       const payasamVal = $('paya-payasam').value.trim();
-      if (!payasamVal) { setErr('err-payasam', 'പായസത്തിന്റെ പേര് നൽകൂ / Payasam name is required.'); ok = false; }
+      if (!payasamVal) { setErr('err-payasam', 'Payasam name is required.'); ok = false; }
       else clearErr('err-payasam');
 
       if (!videoInput.files || !videoInput.files[0]) {
-        setErr('err-video', 'ദയവായി വീഡിയോ അപ്‌ലോഡ് ചെയ്യൂ / Please upload your intro video.');
+        setErr('err-video', 'Please upload your 30-second intro video.');
         ok = false;
       } else {
         const mb = videoInput.files[0].size / 1024 / 1024;
@@ -629,7 +626,7 @@
 
       const consentChecked = $('paya-consent').checked;
       if (!consentChecked) {
-        setErr('err-consent', 'Terms and conditions സ്വീകരിക്കൂ / Please agree to the terms.');
+        setErr('err-consent', 'Please agree to the terms and conditions.');
         ok = false;
       } else clearErr('err-consent');
 
