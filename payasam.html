@@ -314,6 +314,29 @@
       font-size: 12px; color: var(--kerala-amber);
     }
 
+    /* ─── Slow network warning ──────────────────── */
+    .slow-network-msg {
+      display: flex; align-items: flex-start; gap: 12px;
+      background: rgba(255, 140, 0, 0.12);
+      border: 1px solid rgba(255, 140, 0, 0.45);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      margin: 14px 0 10px;
+      text-align: left;
+      animation: fadeInUp 0.4s ease;
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .slow-network-msg strong {
+      font-size: 14px; color: var(--kerala-amber); display: block; margin-bottom: 4px;
+    }
+    .slow-network-msg p {
+      font-size: 12px; color: rgba(255,255,255,0.75); margin: 0; line-height: 1.5;
+    }
+    .slow-net-icon { font-size: 22px; flex-shrink: 0; margin-top: 2px; }
+
     /* ─── Success screen ────────────────────────── */
     .success-screen { text-align: center; padding: 40px 20px; }
     .success-icon {
@@ -377,13 +400,23 @@
       <!-- Progress Screen -->
       <div class="progress-screen hidden" id="progress-screen">
         <span class="progress-icon">⬆️</span>
-        <div class="progress-header">Uploading your video…</div>
+        <div class="progress-header" id="progress-header">Uploading your video…</div>
         <div class="progress-bar-wrap">
           <div class="progress-bar-fill" id="progress-bar-fill"></div>
         </div>
         <div class="progress-stats">
           <span id="progress-percent">0%</span>
           <span id="progress-size">0.0 MB / 0.0 MB</span>
+          <span id="progress-speed" style="color:rgba(255,255,255,0.45); font-size:12px;"></span>
+        </div>
+        <!-- Slow network warning (hidden by default) -->
+        <div id="slow-network-msg" class="slow-network-msg hidden">
+          <span class="slow-net-icon">📡</span>
+          <div>
+            <strong>Slow Network Detected</strong>
+            <p>Your upload is running slowly. Please stay on this page &mdash; do not close or refresh.</p>
+            <p style="margin-top:4px; font-size:11px; opacity:0.7;">Tip: Move closer to your Wi-Fi router or switch to mobile data for a better connection.</p>
+          </div>
         </div>
         <p class="progress-warning">⚠️ Please do not close this page.</p>
       </div>
@@ -665,7 +698,53 @@
       const xhr = new XMLHttpRequest();
       xhr.open('POST', '/api/payasam-register', true);
 
+      // ── Slow-network detector ───────────────────────
+      const slowNetMsg    = $('slow-network-msg');
+      const progressSpeed = $('progress-speed');
+      const progressHeader = $('progress-header');
+      let lastLoaded = 0;
+      let lastTime   = Date.now();
+      let uploadStart = Date.now();
+      let slowShown   = false;
+
+      const speedTimer = setInterval(() => {
+        const now     = Date.now();
+        const elapsed = (now - lastTime) / 1000;          // seconds since last check
+        const totalElapsed = (now - uploadStart) / 1000;  // total seconds
+        const loaded  = xhr._lastLoaded || 0;
+        const bytesPerSec = (loaded - lastLoaded) / elapsed;
+
+        // Show speed in stats
+        if (bytesPerSec > 0) {
+          if (bytesPerSec >= 1048576) {
+            progressSpeed.textContent = `${(bytesPerSec/1048576).toFixed(1)} MB/s`;
+          } else {
+            progressSpeed.textContent = `${Math.round(bytesPerSec/1024)} KB/s`;
+          }
+        }
+
+        // Detect slow: speed < 80 KB/s OR stalled >15s with <10% done
+        const pct = parseFloat(progressFill.style.width) || 0;
+        const isSlow = (bytesPerSec > 0 && bytesPerSec < 80 * 1024) ||
+                       (totalElapsed > 15 && pct < 10);
+
+        if (isSlow && !slowShown) {
+          show(slowNetMsg);
+          progressHeader.textContent = '\uD83D\uDEA6 Upload in progress — slow connection...';
+          slowShown = true;
+        } else if (!isSlow && slowShown && bytesPerSec > 200 * 1024) {
+          // Recovered
+          hide(slowNetMsg);
+          progressHeader.textContent = 'Uploading your video…';
+          slowShown = false;
+        }
+
+        lastLoaded = loaded;
+        lastTime   = now;
+      }, 3000);
+
       xhr.upload.addEventListener('progress', ev => {
+        xhr._lastLoaded = ev.loaded;  // track for speed calc
         if (ev.lengthComputable) {
           const pct = Math.round((ev.loaded / ev.total) * 100);
           progressFill.style.width = pct + '%';
@@ -677,6 +756,7 @@
       });
 
       xhr.onload = () => {
+        clearInterval(speedTimer);
         let data;
         try { data = JSON.parse(xhr.responseText); } catch { data = {}; }
         if (data.success) {
@@ -693,6 +773,7 @@
         }
       };
       xhr.onerror = () => {
+        clearInterval(speedTimer);
         hide(progressScreen);
         show(form);
         globalErr.textContent = 'Network error. Please check your connection and try again.';
