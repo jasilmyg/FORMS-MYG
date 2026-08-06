@@ -22,9 +22,16 @@ import gspread
 # when ready – just fill the constants below)
 # ─────────────────────────────────────────────
 GOOGLE_SHEETS_CREDENTIALS_FILE = "credentials.json"   # service-account JSON
-SPREADSHEET_ID = "1GW2fJjyQk3rkScM2fDpbBzHJd3E_RntudmG7Ml-H1jM"           # from the sheet URL
+SPREADSHEET_ID = "1GW2fJjyQk3rkScM2fDpbBzHJd3E_RntudmG7Ml-H1jM"           # FoneFlix sheet
 SHEET_NAME = "Registrations"
 _sheet = None
+
+# ── Payasolsavam sheet (separate) ─────────────
+PAYASAM_SPREADSHEET_ID = "1FKvF01VB_3mJbRIfB7TZ0GTmcohgVx6E0FE56FMgj2g"
+_payasam_sheet = None
+
+# ── Payasolsavam Drive Folder ─────────────────
+PAYASAM_DRIVE_FOLDER_ID = "1h_ujJQiwnzriIB9oNSJXRRl_EstR2t6I"
 
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
@@ -89,12 +96,13 @@ def get_drive_service():
     except Exception as e:
         return None, f"Auth failed: {str(e)}"
 
-def upload_to_drive(file_path, original_filename):
+def upload_to_drive(file_path, original_filename, folder_id='1OUZYtqNYNs4dimRShz2_vSi1r3TfYALD'):
+    """Upload a file to a specific Google Drive folder (defaults to FoneFlix folder)."""
     service, err = get_drive_service()
     if not service:
         return "", f"Drive auth config error: {err}"
     try:
-        file_metadata = {'name': original_filename, 'parents': ['1OUZYtqNYNs4dimRShz2_vSi1r3TfYALD']}
+        file_metadata = {'name': original_filename, 'parents': [folder_id]}
         media = MediaFileUpload(file_path, resumable=True, chunksize=1024*1024*5)
         request = service.files().create(body=file_metadata, media_body=media, fields='id, webViewLink', supportsAllDrives=True)
         
@@ -155,6 +163,63 @@ def append_to_sheet(data: dict):
 
 
 # ─────────────────────────────────────────────
+# Payasolsavam Sheet helpers
+# ─────────────────────────────────────────────
+def get_payasam_sheet():
+    global _payasam_sheet
+    if _payasam_sheet is not None:
+        return _payasam_sheet, ""
+    try:
+        if os.environ.get("GOOGLE_CREDENTIALS_JSON"):
+            creds_info = json.loads(os.environ.get("GOOGLE_CREDENTIALS_JSON"))
+            credentials = Credentials.from_service_account_info(creds_info, scopes=SCOPES)
+        else:
+            credentials = Credentials.from_service_account_file("credentials.json", scopes=SCOPES)
+        client = gspread.authorize(credentials)
+        sheet = client.open_by_key(PAYASAM_SPREADSHEET_ID).sheet1
+        _payasam_sheet = sheet
+        return sheet, ""
+    except Exception as e:
+        return None, f"Could not connect to Payasam sheet: {str(e)}"
+
+
+def append_payasam_to_sheet(data: dict):
+    """Append one Payasolsavam registration row to the Google Sheet."""
+    try:
+        sheet, err = get_payasam_sheet()
+        if sheet is None:
+            return False, f"Sheet config error: {err}"
+
+        # Ensure header row exists
+        try:
+            first_cell = sheet.cell(1, 1).value
+        except Exception:
+            first_cell = None
+
+        if not first_cell or first_cell != "Timestamp":
+            sheet.insert_row(
+                ["Timestamp", "പേര് (Name)", "സ്ഥലം (Place)",
+                 "ഫോൺ നമ്പർ (Phone)", "Instagram ID",
+                 "പായസം (Payasam Name)", "Video Link"],
+                index=1,
+            )
+
+        row = [
+            data.get("timestamp", ""),
+            data.get("name", ""),
+            data.get("place", ""),
+            data.get("phone", ""),
+            data.get("instagram", ""),
+            data.get("payasam_name", ""),
+            data.get("video_link", ""),
+        ]
+        sheet.append_row(row)
+        return True, ""
+    except Exception as e:
+        return False, f"Payasam sheet append failed: {str(e)}"
+
+
+# ─────────────────────────────────────────────
 # OTP store (in-memory; swap for Redis/DB later)
 # ─────────────────────────────────────────────
 def is_already_registered(phone):
@@ -211,9 +276,120 @@ def register_page():
     return send_from_directory(".", "register.html")
 
 
+@app.route("/payasam")
+def payasam_page():
+    return send_from_directory(".", "payasam.html")
+
+
 @app.route("/static/<path:filename>")
 def static_files(filename):
     return send_from_directory("static", filename)
+
+
+# ── Payasolsavam Registration ─────────────────
+@app.route("/api/payasam-register", methods=["POST"])
+def payasam_register():
+    try:
+        return _payasam_register_impl()
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"success": False, "message": f"Server Error: {str(e)}"}), 500
+
+
+def _payasam_register_impl():
+    name          = request.form.get("paya_name", "").strip()
+    place         = request.form.get("paya_place", "").strip()
+    phone         = request.form.get("paya_phone", "").strip()
+    instagram     = request.form.get("paya_instagram", "").strip()
+    payasam_name  = request.form.get("paya_payasam_name", "").strip()
+    consent       = request.form.get("consent", "").strip()
+
+    errors = []
+    if not name:
+        errors.append("പേര് നൽകൂ / Name is required.")
+    if not place:
+        errors.append("സ്ഥലം നൽകൂ / Location is required.")
+    if not phone or not phone.isdigit() or len(phone) != 10:
+        errors.append("Valid 10-digit phone number is required.")
+    if not instagram:
+        errors.append("Instagram ID is required.")
+    if not payasam_name:
+        errors.append("Payasam name is required.")
+    if consent != "on":
+        errors.append("Please agree to the terms and conditions.")
+    if "introVideo" not in request.files or not request.files["introVideo"].filename:
+        errors.append("Please upload your 30-second intro video.")
+    else:
+        video = request.files["introVideo"]
+        # check file size server-side (50 MB)
+        video.seek(0, 2)   # seek to end
+        size_bytes = video.tell()
+        video.seek(0)      # reset
+        if size_bytes > 50 * 1024 * 1024:
+            errors.append(f"Video file is too large ({size_bytes/1024/1024:.1f} MB). Maximum is 50 MB.")
+
+    if errors:
+        return jsonify({"success": False, "errors": errors}), 400
+
+    # Save video locally first
+    video = request.files["introVideo"]
+    safe_name = f"payasam_{phone}_{int(time.time())}_{video.filename}"
+    local_path = os.path.join(app.config["UPLOAD_FOLDER"], safe_name)
+    video.save(local_path)
+
+    ist_offset = timezone(timedelta(hours=5, minutes=30))
+    record = {
+        "timestamp":    datetime.now(ist_offset).strftime('%Y-%m-%d %H:%M:%S'),
+        "name":         name,
+        "place":        place,
+        "phone":        phone,
+        "instagram":    instagram,
+        "payasam_name": payasam_name,
+        "video_link":   "",
+    }
+
+    def process_payasam_upload(rec, path, fname, base_url):
+        drive_success = False
+        try:
+            video_link = ""
+            if path and os.path.exists(path):
+                drive_url, drive_err = upload_to_drive(path, fname, folder_id=PAYASAM_DRIVE_FOLDER_ID)
+                if drive_err:
+                    print(f"[Payasam Drive] Upload error: {drive_err}")
+                    video_link = f"{base_url}uploads/{fname}"
+                else:
+                    drive_success = True
+                    video_link = drive_url
+            rec["video_link"] = video_link
+
+            saved, sheet_err = append_payasam_to_sheet(rec)
+            if not saved:
+                print(f"[Payasam Sheets] Append error: {sheet_err}")
+
+            print(f"[Payasam] Processed: {rec['name']} | {rec['phone']} | Sheets={saved} | Drive={drive_success}")
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            print(f"[Payasam] Background error: {e}")
+        finally:
+            if path and os.path.exists(path) and drive_success:
+                try:
+                    os.remove(path)
+                except Exception:
+                    pass
+
+    base_url = request.url_root
+    thread = threading.Thread(
+        target=process_payasam_upload,
+        args=(record, local_path, safe_name, base_url)
+    )
+    thread.start()
+
+    return jsonify({
+        "success": True,
+        "message": "Registration received! Uploading video in the background…",
+    })
 
 
 # ── OTP endpoints ─────────────────────────────
