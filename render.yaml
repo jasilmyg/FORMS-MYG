@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: myg-forms
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn server:app --bind 0.0.0.0:$PORT --timeout 600 --workers 2
+    envVars:
+      - key: GOOGLE_CREDENTIALS_JSON
+        sync: false          # set manually in Render dashboard
+      - key: TOKEN_PICKLE_B64
+        sync: false          # set manually in Render dashboard
+      - key: CLIENT_SECRET_JSON
+        sync: false          # set manually in Render dashboard
+    disk:
+      name: uploads
+      mountPath: /opt/render/project/src/uploads
+      sizeGB: 5
