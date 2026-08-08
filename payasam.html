@@ -15,17 +15,17 @@
       --kerala-green:    #006b3c;
       --kerala-gold:     #f5c518;
       --kerala-gold-dim: #c9a414;
-      --kerala-amber:    #ff9900;
-      --deep-bg:         #030e07;
-      --card-bg:         rgba(255,255,255,0.04);
-      --card-border:     rgba(255,255,255,0.10);
-      --input-bg:        rgba(255,255,255,0.07);
-      --input-border:    rgba(255,255,255,0.20);
-      --input-focus:     rgba(245,197,24,0.6);
-      --text-primary:    #ffffff;
-      --text-muted:      rgba(255,255,255,0.60);
-      --error-color:     #ff6b6b;
-      --success-color:   #4ade80;
+      --kerala-amber:    #e8650a;
+      --deep-bg:         #f5f0e8;
+      --card-bg:         rgba(255,255,255,0.75);
+      --card-border:     rgba(200,160,80,0.25);
+      --input-bg:        rgba(255,255,255,0.90);
+      --input-border:    rgba(180,140,60,0.35);
+      --input-focus:     rgba(232,101,10,0.55);
+      --text-primary:    #1a1207;
+      --text-muted:      rgba(40,25,5,0.60);
+      --error-color:     #c0392b;
+      --success-color:   #1a7a3a;
       --font-main:       'Outfit', 'Noto Sans Malayalam', sans-serif;
       --font-ml:         'Noto Sans Malayalam', 'Outfit', sans-serif;
       --radius-sm:       8px;
@@ -65,12 +65,12 @@
       position: fixed; top: 0; left: 0; right: 0; z-index: 100;
       display: flex; align-items: center; justify-content: space-between;
       padding: 0 40px; height: 72px;
-      background: rgba(3,14,7,0.95);
+      background: rgba(245,240,232,0.97);
       border-bottom: 2px solid var(--kerala-gold);
-      box-shadow: 0 0 18px rgba(245,197,24,0.25);
+      box-shadow: 0 2px 18px rgba(200,140,30,0.18);
       backdrop-filter: blur(10px);
     }
-    .nav-logo { height: 42px; object-fit: contain; }
+    .nav-logo { height: 60px; object-fit: contain; }
     .nav-badge {
       font-family: var(--font-ml);
       font-size: 13px; font-weight: 700;
@@ -82,7 +82,7 @@
     /* ─── Hero banner ──────────────────────────── */
     .hero-banner {
       padding-top: 72px;
-      background: #030e07;
+      background: #f5f0e8;
       display: block;
       cursor: pointer;
     }
@@ -90,6 +90,13 @@
       width: 100%;
       height: auto;
       display: block;
+    }
+    @media (max-width: 600px) {
+      .hero-banner img {
+        height: 180px; /* Increased height for mobile */
+        object-fit: cover;
+        object-position: center;
+      }
     }
 
     /* ─── Page wrapper ─────────────────────────── */
@@ -107,16 +114,16 @@
       padding: 40px 36px;
       backdrop-filter: blur(12px);
       box-shadow:
-        0 0 0 1px rgba(245,197,24,0.06),
-        0 20px 60px rgba(0,0,0,0.5),
-        inset 0 1px 0 rgba(255,255,255,0.06);
+        0 0 0 1px rgba(200,160,60,0.12),
+        0 20px 60px rgba(180,120,20,0.12),
+        inset 0 1px 0 rgba(255,255,255,0.70);
     }
     @media (max-width: 600px) { .form-card { padding: 28px 18px; } }
 
     .form-title {
       font-family: var(--font-ml);
       font-size: 20px; font-weight: 700;
-      color: var(--kerala-gold);
+      color: var(--kerala-amber);
       margin-bottom: 28px;
       text-align: center;
     }
@@ -127,7 +134,7 @@
       display: block;
       font-family: var(--font-ml);
       font-size: 13px; font-weight: 600;
-      color: rgba(255,255,255,0.85);
+      color: rgba(30,18,5,0.80);
       margin-bottom: 8px;
       letter-spacing: 0.3px;
     }
@@ -152,7 +159,7 @@
       outline: none;
       transition: border-color var(--transition), box-shadow var(--transition);
     }
-    .form-input::placeholder { color: rgba(255,255,255,0.3); }
+    .form-input::placeholder { color: rgba(30,18,5,0.35); }
     .form-input:focus {
       border-color: var(--kerala-gold);
       box-shadow: 0 0 0 3px rgba(245,197,24,0.18);
@@ -383,7 +390,6 @@
   <!-- Navbar -->
   <nav class="top-nav">
     <img src="static/myg_future_logo.png" alt="myG Future Logo" class="nav-logo" />
-    <span class="nav-badge">myG Payasolsavam 2026</span>
   </nav>
 
   <!-- Hero -->
