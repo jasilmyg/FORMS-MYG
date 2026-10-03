@@ -268,7 +268,7 @@ def serve_upload(filename):
 
 @app.route("/")
 def landing():
-    return send_from_directory(".", "payasam.html")
+    return send_from_directory(".", "maintenance.html")
 
 
 @app.route("/register")
@@ -279,6 +279,11 @@ def register_page():
 @app.route("/payasam")
 def payasam_page():
     return send_from_directory(".", "payasam.html")
+
+
+@app.route("/maintenance")
+def maintenance_page():
+    return send_from_directory(".", "maintenance.html")
 
 
 @app.route("/static/<path:filename>")
@@ -598,6 +603,6 @@ def health():
 if __name__ == "__main__":
     print("=" * 55)
     print("  Bigg Boss Agnipareeksha Registration Server")
-    print("  http://127.0.0.1:7001")
+    print("  http://127.0.0.1:5000")
     print("=" * 55)
-    app.run(debug=True, host="0.0.0.0", port=7001)
+    app.run(debug=True, host="0.0.0.0", port=5000)
