@@ -64,7 +64,8 @@ body {
   object-fit: contain;
 }
 
-h1 { margin: 0 0 6px; font-size: 1.75rem; font-weight: 700; letter-spacing: -.02em; }
+h1 { margin: 0 0 6px; font-size: 1.75rem; font-weight: 700; letter-spacing: -.02em; color: var(--text); }
+.section-title { margin: 0 0 8px; font-size: 1.15rem; font-weight: 600; color: var(--primary-text); letter-spacing: -.01em; }
 .subtitle { margin: 0; color: var(--muted); font-size: .95rem; }
 
 /* ── Grid ─────────────────────────── */
@@ -272,7 +273,8 @@ input:disabled, select:disabled {
   .page { padding: 16px 12px; align-items: flex-start; }
   .card { padding: 28px 20px 24px; border-radius: 16px; }
   .grid { grid-template-columns: 1fr; gap: 18px; }
-  h1 { font-size: 1.5rem; }
+  h1 { font-size: 1.4rem; }
+  .section-title { font-size: 1.05rem; }
   /* 16px inputs prevent iOS zoom-on-focus */
   input[type="text"], input[type="tel"], input[type="number"], select { font-size: 16px; }
 }
