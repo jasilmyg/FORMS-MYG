@@ -272,7 +272,7 @@ def serve_upload(filename):
 
 @app.route("/")
 def landing():
-    return send_from_directory(".", "maintenance.html")
+    return send_from_directory(".", "user_registration.html")
 
 
 @app.route("/register")
