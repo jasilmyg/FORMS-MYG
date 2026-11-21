@@ -62,17 +62,54 @@ _table_lock = threading.Lock()
 
 
 # ── Database helpers ─────────────────────────────────────────
-def get_connection():
-    url = os.environ.get("DATABASE_URL")
+def _env(*names, default=""):
+    for name in names:
+        val = os.environ.get(name)
+        if val is not None and val.strip():
+            return val.strip()
+    return default
+
+
+def _db_config():
+    url = _env("DATABASE_URL")
     if url:
-        return psycopg2.connect(url, connect_timeout=10)
+        return {"url": url, "sslmode": _env("DB_SSLMODE", "PGSSLMODE", default="require")}, []
+
+    cfg = {
+        "host": _env("DB_HOST", "PGHOST"),
+        "port": _env("DB_PORT", "PGPORT", default="5432"),
+        "dbname": _env("DB_NAME", "DB_DATABASE", "PGDATABASE"),
+        "user": _env("DB_USER", "DB_USERNAME", "PGUSER"),
+        "password": _env("DB_PASSWORD", "PGPASSWORD"),
+        "sslmode": _env("DB_SSLMODE", "PGSSLMODE", default="require"),
+    }
+    missing = [k for k, env_name in (
+        ("host", "DB_HOST"), ("dbname", "DB_NAME"),
+        ("user", "DB_USER"), ("password", "DB_PASSWORD"),
+    ) if not cfg[k]]
+    missing_names = [env_name for k, env_name in (
+        ("host", "DB_HOST"), ("dbname", "DB_NAME"),
+        ("user", "DB_USER"), ("password", "DB_PASSWORD"),
+    ) if k in missing]
+    return cfg, missing_names
+
+
+def get_connection():
+    cfg, missing = _db_config()
+    if missing:
+        raise RuntimeError(f"Missing database environment variables: {', '.join(missing)}")
+    if "url" in cfg:
+        kwargs = {"connect_timeout": 10}
+        if "sslmode=" not in cfg["url"]:
+            kwargs["sslmode"] = cfg["sslmode"]
+        return psycopg2.connect(cfg["url"], **kwargs)
     return psycopg2.connect(
-        host=os.environ["DB_HOST"],
-        port=int(os.environ.get("DB_PORT", "5432")),
-        dbname=os.environ["DB_NAME"],
-        user=os.environ["DB_USER"],
-        password=os.environ["DB_PASSWORD"],
-        sslmode=os.environ.get("DB_SSLMODE", "require"),
+        host=cfg["host"],
+        port=int(cfg["port"]),
+        dbname=cfg["dbname"],
+        user=cfg["user"],
+        password=cfg["password"],
+        sslmode=cfg["sslmode"],
         connect_timeout=10,
     )
 
@@ -184,6 +221,34 @@ def _rate_limited(ip):
 @user_reg_bp.route("/user-registration")
 def user_registration_page():
     return send_from_directory(BASE_DIR, "user_registration.html")
+
+
+@user_reg_bp.route("/api/user-registration/health")
+def user_registration_health():
+    _, missing = _db_config()
+    if missing:
+        return jsonify({
+            "ok": False,
+            "status": "missing_db_env",
+            "missing": missing,
+        }), 503
+    conn = None
+    try:
+        conn = get_connection()
+        ensure_table(conn)
+        with conn.cursor() as cur:
+            cur.execute("SELECT 1")
+        return jsonify({"ok": True, "status": "connected", "table": TABLE_NAME}), 200
+    except Exception as exc:  # noqa: BLE001
+        print(f"[UserRegistration] Health check DB error: {exc}")
+        return jsonify({
+            "ok": False,
+            "status": "db_connection_failed",
+            "error_type": type(exc).__name__,
+        }), 503
+    finally:
+        if conn:
+            conn.close()
 
 
 @user_reg_bp.route("/api/user-registration", methods=["POST"])
