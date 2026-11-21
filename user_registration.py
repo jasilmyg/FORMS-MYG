@@ -466,6 +466,6 @@ def user_registration_submit():
     sheet_ok, _ = append_registration_to_sheet(clean, created_at)
     return jsonify({
         "success": True,
-        "message": "Thank you! Your registration has been completed successfully.",
+        "message": "Thank you for registering! If you get shortlisted, we will contact you.",
         "sheetSynced": sheet_ok,
     }), 201

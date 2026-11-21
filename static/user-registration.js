@@ -281,7 +281,7 @@
   });
 
   function showSuccess(body) {
-    document.getElementById("successMsg").textContent = body.message || "Registration completed successfully.";
+    document.getElementById("successMsg").textContent = body.message || "Thank you for registering! If you get shortlisted, we will contact you.";
     formView.hidden = true;
     successView.hidden = false;
     successView.focus();
