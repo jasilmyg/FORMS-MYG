@@ -238,7 +238,6 @@
 
   function showSuccess(body) {
     document.getElementById("successMsg").textContent = body.message || "Registration completed successfully.";
-    document.getElementById("refId").textContent = body.referenceId || "—";
     formView.hidden = true;
     successView.hidden = false;
     successView.focus();
