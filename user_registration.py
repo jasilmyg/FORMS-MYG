@@ -135,6 +135,17 @@ def ensure_table(conn=None):
 
 
 # ── Validation ───────────────────────────────────────────────
+def _normalize_mobile(raw):
+    mobile = re.sub(r"[\s\-]", "", str(raw or ""))
+    if mobile.startswith("+91") and len(mobile) == 13:
+        mobile = mobile[3:]
+    elif mobile.startswith("91") and len(mobile) == 12:
+        mobile = mobile[2:]
+    elif mobile.startswith("0") and len(mobile) == 11:
+        mobile = mobile[1:]
+    return mobile
+
+
 def validate_payload(data):
     """Return (clean_dict, errors_dict)."""
     errors = {}
@@ -145,9 +156,7 @@ def validate_payload(data):
     elif not NAME_RE.match(full_name):
         errors["fullName"] = "Enter a valid name (letters only, 2-100 characters)."
 
-    mobile = re.sub(r"[\s\-]", "", str(data.get("mobile", "") or ""))
-    if mobile.startswith("+91"):
-        mobile = mobile[3:]
+    mobile = _normalize_mobile(data.get("mobile", ""))
     if not mobile:
         errors["mobile"] = "Mobile number is required."
     elif not MOBILE_RE.match(mobile):
@@ -196,8 +205,10 @@ def validate_payload(data):
 
 # ── Simple in-memory rate limiter (per IP) ───────────────────
 _hits = defaultdict(deque)
+_check_hits = defaultdict(deque)
 _hits_lock = threading.Lock()
-RATE_LIMIT, RATE_WINDOW = 10, 60  # 10 submissions / minute / IP
+RATE_LIMIT, RATE_WINDOW = 10, 60       # 10 submissions / minute / IP
+CHECK_RATE_LIMIT = 30                  # 30 mobile checks / minute / IP
 
 
 def _client_ip():
@@ -205,13 +216,14 @@ def _client_ip():
     return (fwd.split(",")[0].strip() if fwd else request.remote_addr) or ""
 
 
-def _rate_limited(ip):
+def _rate_limited(ip, bucket=None, limit=RATE_LIMIT):
+    store = _hits if bucket is None else bucket
     now = time.time()
     with _hits_lock:
-        q = _hits[ip]
+        q = store[ip]
         while q and now - q[0] > RATE_WINDOW:
             q.popleft()
-        if len(q) >= RATE_LIMIT:
+        if len(q) >= limit:
             return True
         q.append(now)
     return False
@@ -251,6 +263,43 @@ def user_registration_health():
             conn.close()
 
 
+@user_reg_bp.route("/api/user-registration/check-mobile", methods=["POST"])
+def user_registration_check_mobile():
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({"exists": False}), 400
+
+    mobile = _normalize_mobile(data.get("mobile", ""))
+    if not MOBILE_RE.match(mobile):
+        return jsonify({"exists": False}), 200
+
+    if _rate_limited(_client_ip(), _check_hits, CHECK_RATE_LIMIT):
+        return jsonify({"exists": False}), 429
+
+    conn = None
+    try:
+        conn = get_connection()
+        ensure_table(conn)
+        with conn.cursor() as cur:
+            cur.execute(
+                f"SELECT 1 FROM {TABLE_NAME} WHERE country_code = '+91' AND mobile_number = %s LIMIT 1",
+                (mobile,),
+            )
+            exists = cur.fetchone() is not None
+        if exists:
+            return jsonify({
+                "exists": True,
+                "message": "This mobile number is already registered.",
+            }), 200
+        return jsonify({"exists": False}), 200
+    except Exception as exc:  # noqa: BLE001
+        print(f"[UserRegistration] Mobile check error: {exc}")
+        return jsonify({"exists": False}), 200
+    finally:
+        if conn:
+            conn.close()
+
+
 @user_reg_bp.route("/api/user-registration", methods=["POST"])
 def user_registration_submit():
     data = request.get_json(silent=True)
@@ -276,6 +325,18 @@ def user_registration_submit():
         conn = get_connection()
         ensure_table(conn)
         with conn.cursor() as cur:
+            # Explicit duplicate check before INSERT (avoids burning sequence IDs)
+            cur.execute(
+                f"SELECT 1 FROM {TABLE_NAME} WHERE country_code = '+91' AND mobile_number = %s LIMIT 1",
+                (clean["mobile_number"],),
+            )
+            if cur.fetchone() is not None:
+                return jsonify({
+                    "success": False,
+                    "message": "This mobile number is already registered.",
+                    "errors": {"mobile": "This mobile number is already registered."},
+                }), 409
+
             cur.execute(
                 f"""INSERT INTO {TABLE_NAME}
                     (full_name, country_code, mobile_number, gender, age, place,

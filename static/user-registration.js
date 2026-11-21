@@ -2,6 +2,7 @@
   "use strict";
 
   var API_URL = "/api/user-registration";
+  var CHECK_MOBILE_URL = "/api/user-registration/check-mobile";
   var form = document.getElementById("regForm");
   var submitBtn = document.getElementById("submitBtn");
   var hint = document.getElementById("submitHint");
@@ -25,6 +26,9 @@
 
   var touched = {};
   var submitting = false;
+  var duplicateMobiles = {};
+  var mobileCheckTimer = null;
+  var mobileCheckController = null;
 
   /* ── validators: return an error string, or "" when valid ── */
   var validators = {
@@ -39,6 +43,7 @@
       if (!/^\d+$/.test(v)) return "Mobile number can contain digits only.";
       if (v.length !== 10) return "Mobile number must be exactly 10 digits.";
       if (!MOBILE_RE.test(v)) return "Enter a valid mobile number starting with 6, 7, 8 or 9.";
+      if (duplicateMobiles[v]) return "This mobile number is already registered.";
       return "";
     },
     gender: function (v) {
@@ -124,6 +129,38 @@
     if (els.age.value !== v) els.age.value = v;
   });
 
+  /* ── live duplicate mobile check ── */
+  function scheduleMobileCheck(mobile) {
+    clearTimeout(mobileCheckTimer);
+    if (mobileCheckController) {
+      mobileCheckController.abort();
+      mobileCheckController = null;
+    }
+    if (!MOBILE_RE.test(mobile) || duplicateMobiles[mobile]) return;
+
+    mobileCheckTimer = setTimeout(function () {
+      mobileCheckController = new AbortController();
+      fetch(CHECK_MOBILE_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({ mobile: mobile }),
+        signal: mobileCheckController.signal
+      })
+        .then(function (res) { return res.ok ? res.json() : {}; })
+        .then(function (body) {
+          if (body && body.exists) {
+            duplicateMobiles[mobile] = true;
+            if (els.mobile.value === mobile) {
+              touched.mobile = true;
+              setFieldState("mobile", body.message || "This mobile number is already registered.");
+              refreshButton();
+            }
+          }
+        })
+        .catch(function () { /* ignore abort/network hiccups; server still enforces on submit */ });
+    }, 250);
+  }
+
   /* ── live validation ── */
   Object.keys(els).forEach(function (name) {
     function onEdit() {
@@ -131,6 +168,7 @@
       checkField(name, true);
       hideAlert();
       refreshButton();
+      if (name === "mobile") scheduleMobileCheck(els.mobile.value);
     }
     if (name === "gender" || name === "terms") {
       els[name].addEventListener("change", onEdit);
@@ -142,6 +180,7 @@
       touched[name] = true;
       checkField(name, true);
       refreshButton();
+      if (name === "mobile") scheduleMobileCheck(els.mobile.value);
     });
   });
 
@@ -210,8 +249,12 @@
       })
       .then(function (r) {
         if (r.ok && r.body.success) {
+          duplicateMobiles[payload.mobile] = true;
           showSuccess(r.body);
           return;
+        }
+        if (r.status === 409) {
+          duplicateMobiles[payload.mobile] = true;
         }
         setLoading(false);
         if (r.body && r.body.errors) {
@@ -221,6 +264,7 @@
           var bad = form.querySelector(".invalid input, .invalid select");
           if (bad) bad.focus();
         }
+        refreshButton();
         var msg = (r.body && r.body.message) || "Something went wrong. Please try again.";
         showAlert(msg);
         toast(msg, "error");
