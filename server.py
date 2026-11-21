@@ -256,6 +256,10 @@ otp_store = {}   # { phone: { "otp": "123456", "expires": timestamp } }
 app = Flask(__name__, static_folder="static", template_folder=".")
 CORS(app)
 
+# User Registration form (PostgreSQL-backed)
+from user_registration import user_reg_bp
+app.register_blueprint(user_reg_bp)
+
 UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "uploads")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER

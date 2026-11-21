@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>myG — User Registration</title>
+  <meta name="description" content="Register your details securely with myG.">
+  <link rel="icon" type="image/svg+xml" href="/static/myg-logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/user-registration.css">
+</head>
+<body>
+  <main class="page">
+    <section class="card" aria-labelledby="form-title">
+
+      <!-- ───────── Registration form ───────── -->
+      <div id="formView">
+        <header class="card-header">
+          <img src="/static/myg-logo.svg" alt="myG" class="brand-logo" width="76" height="76">
+          <h1 id="form-title">User Registration</h1>
+          <p class="subtitle">Please fill in your details below to complete your registration.</p>
+        </header>
+
+        <div id="formAlert" class="alert alert-error" role="alert" hidden></div>
+
+        <form id="regForm" novalidate autocomplete="on">
+          <div class="grid">
+
+            <!-- Full name -->
+            <div class="field span-2" data-field="fullName">
+              <label for="fullName">Full Name <span class="req" aria-hidden="true">*</span></label>
+              <div class="control">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <input type="text" id="fullName" name="fullName" placeholder="Enter your full name"
+                       autocomplete="name" maxlength="100" required aria-describedby="fullName-error">
+              </div>
+              <p class="error" id="fullName-error" role="alert"></p>
+            </div>
+
+            <!-- Mobile -->
+            <div class="field" data-field="mobile">
+              <label for="mobile">Mobile Number <span class="req" aria-hidden="true">*</span></label>
+              <div class="control">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
+                <span class="prefix" aria-label="India country code plus 91">
+                  <span class="flag" aria-hidden="true"></span>+91
+                </span>
+                <input type="tel" id="mobile" name="mobile" placeholder="10-digit mobile number"
+                       inputmode="numeric" autocomplete="tel-national" maxlength="18" required
+                       aria-describedby="mobile-error" class="has-prefix">
+              </div>
+              <p class="error" id="mobile-error" role="alert"></p>
+            </div>
+
+            <!-- Gender -->
+            <div class="field" data-field="gender">
+              <label for="gender">Gender <span class="req" aria-hidden="true">*</span></label>
+              <div class="control">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="5"/><path d="M12 13v8M9 18h6"/></svg>
+                <select id="gender" name="gender" required aria-describedby="gender-error">
+                  <option value="" selected disabled>Select gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                  <option value="Prefer not to say">Prefer not to say</option>
+                </select>
+                <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+              </div>
+              <p class="error" id="gender-error" role="alert"></p>
+            </div>
+
+            <!-- Age -->
+            <div class="field" data-field="age">
+              <label for="age">Age <span class="req" aria-hidden="true">*</span></label>
+              <div class="control">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                <input type="number" id="age" name="age" placeholder="Enter your age" min="1" max="120" step="1"
+                       inputmode="numeric" required aria-describedby="age-error">
+              </div>
+              <p class="error" id="age-error" role="alert"></p>
+            </div>
+
+            <!-- Place -->
+            <div class="field" data-field="place">
+              <label for="place">Place <span class="req" aria-hidden="true">*</span></label>
+              <div class="control">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                <input type="text" id="place" name="place" placeholder="Enter your place"
+                       autocomplete="address-level2" maxlength="100" required aria-describedby="place-error">
+              </div>
+              <p class="error" id="place-error" role="alert"></p>
+            </div>
+
+            <!-- Honeypot (hidden from real users) -->
+            <div class="hp" aria-hidden="true">
+              <label for="website">Website</label>
+              <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+            </div>
+
+            <!-- Terms -->
+            <div class="field span-2" data-field="terms">
+              <label class="check" for="terms">
+                <input type="checkbox" id="terms" name="terms" required aria-describedby="terms-error">
+                <span class="box" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg>
+                </span>
+                <span class="check-text">I agree to the
+                  <a href="#" data-modal="termsModal">Terms and Conditions</a> and
+                  <a href="#" data-modal="privacyModal">Privacy Policy</a>.</span>
+              </label>
+              <p class="error" id="terms-error" role="alert"></p>
+            </div>
+          </div>
+
+          <button type="submit" id="submitBtn" class="btn" disabled>
+            <span class="spinner" aria-hidden="true"></span>
+            <span class="btn-label">Submit</span>
+          </button>
+          <p class="hint" id="submitHint">Complete all required fields to enable the Submit button.</p>
+        </form>
+
+        <p class="secure-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          Your information is encrypted in transit and stored securely.
+        </p>
+      </div>
+
+      <!-- ───────── Success view ───────── -->
+      <div id="successView" class="success" role="status" aria-live="polite" hidden tabindex="-1">
+        <div class="tick" aria-hidden="true">
+          <svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="24" fill="none"/><path d="M14 27l8 8 16-17" fill="none"/></svg>
+        </div>
+        <h2>Registration Successful</h2>
+        <p id="successMsg">Thank you! Your registration has been completed successfully.</p>
+        <p class="ref">Reference ID: <strong id="refId">—</strong></p>
+        <button type="button" id="againBtn" class="btn btn-secondary">Register Another Person</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <!-- Terms / Privacy dialogs -->
+  <dialog id="termsModal" class="modal" aria-labelledby="termsTitle">
+    <h3 id="termsTitle">Terms and Conditions</h3>
+    <div class="modal-body">
+      <p>By submitting this form you confirm that the information you provide is accurate and that you are authorised to share it.</p>
+      <p>Your details will be used only for registration and communication related to this service. Duplicate or fraudulent registrations may be rejected.</p>
+    </div>
+    <button type="button" class="btn btn-secondary" data-close>Close</button>
+  </dialog>
+  <dialog id="privacyModal" class="modal" aria-labelledby="privacyTitle">
+    <h3 id="privacyTitle">Privacy Policy</h3>
+    <div class="modal-body">
+      <p>We collect your name, mobile number, gender, age and place solely to process your registration.</p>
+      <p>Your data is stored securely, transmitted over an encrypted connection and is not sold to third parties.</p>
+    </div>
+    <button type="button" class="btn btn-secondary" data-close>Close</button>
+  </dialog>
+
+  <script src="/static/user-registration.js"></script>
+</body>
+</html>
